@@ -21,5 +21,6 @@ public class About {
         frame.add(label);
         frame.setLocationRelativeTo(null); // center on screen
         frame.setVisible(true);
+        System.out.println("Called about.class");
     }
 }
