@@ -1,5 +1,8 @@
 public class Main {
     public static void main(String[] args) {
-        System.out.println("Hello IntelliJ!");
+        javax.swing.SwingUtilities.invokeLater(() -> {
+            PlayerUI playerUI = new PlayerUI();
+            playerUI.createAndShowGUI();
+        });
     }
 }
