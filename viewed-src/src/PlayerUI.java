@@ -19,7 +19,7 @@ public class PlayerUI {
     private boolean isSeeking = false; // To avoid conflict between slider update & user drag
 
     public void createAndShowGUI() {
-        JFrame frame = new JFrame("Swing + JavaFX MP4 Player");
+        JFrame frame = new JFrame("Viewed Alpha");
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setSize(900, 650);
         frame.setLayout(new BorderLayout());
