@@ -8,7 +8,7 @@ public class About {
 
         JLabel label = new JLabel(
                 "<html><div style='text-align: center;'>"
-                        + "<h2>Viewed MP4 Player</h2>"
+                        + "<h2>Viewed Media Player</h2>"
                         + "<p>By Starry Systems</p>"
                         + "<p>Application Programming: Ben House</p>"
                         + "<p>Web Programming: Lakshin Hemachandran</p>"
