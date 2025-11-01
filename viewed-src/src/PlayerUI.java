@@ -5,7 +5,7 @@ import javafx.scene.layout.StackPane;
 import javafx.scene.media.Media;
 import javafx.scene.media.MediaPlayer;
 import javafx.scene.media.MediaView;
-import javafx.scene.paint.Color;
+import javafx.util.Duration;
 
 import javax.swing.*;
 import javax.swing.event.ChangeEvent;
@@ -17,102 +17,115 @@ import java.util.prefs.Preferences;
 
 public class PlayerUI {
 
-    private JFrame frame;
     private MediaPlayer mediaPlayer;
     private MediaView mediaView;
-    private VisualizerPanel visualizerPanel;
-    private JLabel albumArtLabel;
+    private JFrame frame;
+    private JFXPanel jfxPanel;
 
-    private boolean isFullscreen = false;
-    private Rectangle previousBounds;
-
+    private boolean isSeeking = false;
     private static final int MAX_RECENT_FILES = 5;
     private final Preferences prefs = Preferences.userNodeForPackage(PlayerUI.class);
     private final ArrayList<Object> recentFiles = new ArrayList<>();
     private final JMenu recentFilesMenu = new JMenu("Recent Files");
+    private boolean isFullscreen = false;
+    private Rectangle previousBounds;
 
-    private boolean isSeeking = false;
+    private JLabel fileLabel;
 
     public void createAndShowGUI() {
-        frame = new JFrame("Viewed Player");
+        frame = new JFrame("Viewed - Alpha");
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setSize(900, 700);
         frame.setLayout(new BorderLayout());
 
-        // Menu Bar
+        // --- Menu Bar ---
         JMenuBar menuBar = new JMenuBar();
 
         JMenu fileMenu = new JMenu("File");
-        JMenuItem openItem = new JMenuItem("Open File...");
+        JMenuItem openItem = new JMenuItem("Open MP4/MP3...");
         JMenuItem exitItem = new JMenuItem("Exit");
         fileMenu.add(openItem);
         fileMenu.addSeparator();
         fileMenu.add(exitItem);
         fileMenu.add(recentFilesMenu);
-        menuBar.add(fileMenu);
 
         JMenu viewMenu = new JMenu("View");
         JMenuItem fullscreenItem = new JMenuItem("Toggle Fullscreen");
         viewMenu.add(fullscreenItem);
-        menuBar.add(viewMenu);
 
-        JMenu miscMenu = new JMenu("Misc");
+        JMenu playbackMenu = new JMenu("Playback");
+        JMenuItem reloadItem = new JMenuItem("Reload Player");
+        playbackMenu.add(reloadItem);
+
+        JMenu toolsMenu = new JMenu("Misc.");
         JMenuItem aboutItem = new JMenuItem("About");
-        miscMenu.add(aboutItem);
-        menuBar.add(miscMenu);
+        JMenuItem nothingItem = new JMenuItem("Nothing.");
+        toolsMenu.add(aboutItem);
+        toolsMenu.add(nothingItem);
 
+        menuBar.add(fileMenu);
+        menuBar.add(viewMenu);
+        menuBar.add(playbackMenu);
+        menuBar.add(toolsMenu);
         frame.setJMenuBar(menuBar);
 
-        // Center Panel for media
-        JPanel centerPanel = new JPanel(new CardLayout());
+        // --- Player area ---
+        jfxPanel = new JFXPanel();
+        frame.add(jfxPanel, BorderLayout.CENTER);
 
-        // --- Video Panel ---
-        JFXPanel videoPanel = new JFXPanel();
-        mediaView = new MediaView();
-        visualizerPanel = new VisualizerPanel();
-        albumArtLabel = new JLabel();
-        albumArtLabel.setHorizontalAlignment(SwingConstants.CENTER);
+        // Label for MP3 or no video
+        fileLabel = new JLabel("No media loaded :(");
+        fileLabel.setHorizontalAlignment(SwingConstants.CENTER);
+        fileLabel.setVerticalAlignment(SwingConstants.CENTER);
+        fileLabel.setFont(new Font("SansSerif", Font.BOLD, 24));
+        jfxPanel.setLayout(new BorderLayout());
+        jfxPanel.add(fileLabel, BorderLayout.CENTER);
 
-        centerPanel.add(videoPanel, "VIDEO");
-        centerPanel.add(visualizerPanel, "VISUALIZER");
-        centerPanel.add(albumArtLabel, "ALBUM_ART");
-
-        frame.add(centerPanel, BorderLayout.CENTER);
-
-        // Control Panel
+        // --- Control bar ---
         JPanel controls = new JPanel(new BorderLayout());
-        JPanel buttons = new JPanel();
+        JPanel buttonPanel = new JPanel();
         JButton playBtn = new JButton("▶ Play");
         JButton pauseBtn = new JButton("⏸ Pause");
-        buttons.add(playBtn);
-        buttons.add(pauseBtn);
+        buttonPanel.add(playBtn);
+        buttonPanel.add(pauseBtn);
 
-        JPanel volumeTimePanel = new JPanel();
-        JSlider volumeSlider = new JSlider(0, 100, 100);
-        JSlider seekBar = new JSlider(0, 100, 0);
+        JPanel volumePanel = new JPanel();
         JLabel timeLabel = new JLabel("00:00 / 00:00");
+        JSlider volumeSlider = new JSlider(0, 100, 100);
+        volumePanel.add(new JLabel("🔊"));
+        volumePanel.add(volumeSlider);
+        volumePanel.add(timeLabel);
 
-        volumeTimePanel.add(new JLabel("🔊"));
-        volumeTimePanel.add(volumeSlider);
-        volumeTimePanel.add(timeLabel);
-
-        controls.add(buttons, BorderLayout.WEST);
-        controls.add(volumeTimePanel, BorderLayout.EAST);
-
+        controls.add(buttonPanel, BorderLayout.WEST);
+        controls.add(volumePanel, BorderLayout.EAST);
         frame.add(controls, BorderLayout.SOUTH);
+
+        // Seek bar
+        JSlider seekBar = new JSlider(0, 100, 0);
         frame.add(seekBar, BorderLayout.NORTH);
 
         frame.setVisible(true);
 
-        // --- Action Listeners ---
-        openItem.addActionListener(e -> chooseFile(centerPanel, videoPanel, seekBar, volumeSlider, timeLabel));
+        // --- Action handlers ---
+        openItem.addActionListener(e -> chooseFile());
         exitItem.addActionListener(e -> System.exit(0));
+
         fullscreenItem.addActionListener(e -> toggleFullscreen());
+
+        reloadItem.addActionListener(e -> {
+            if (mediaPlayer != null) {
+                mediaPlayer.stop();
+                mediaPlayer.dispose();
+            }
+            JOptionPane.showMessageDialog(frame, "Player reloaded!");
+        });
+
+        aboutItem.addActionListener(e -> new About().run());
+        nothingItem.addActionListener(e -> JOptionPane.showMessageDialog(frame, "TODO"));
 
         playBtn.addActionListener(e -> Platform.runLater(() -> {
             if (mediaPlayer != null) mediaPlayer.play();
         }));
-
         pauseBtn.addActionListener(e -> Platform.runLater(() -> {
             if (mediaPlayer != null) mediaPlayer.pause();
         }));
@@ -129,8 +142,9 @@ public class PlayerUI {
                 isSeeking = true;
                 double percent = seekBar.getValue() / 100.0;
                 Platform.runLater(() -> {
-                    if (mediaPlayer.getTotalDuration() != null && !mediaPlayer.getTotalDuration().isUnknown()) {
-                        mediaPlayer.seek(mediaPlayer.getTotalDuration().multiply(percent));
+                    Duration total = mediaPlayer.getTotalDuration();
+                    if (total != null && !total.isUnknown()) {
+                        mediaPlayer.seek(total.multiply(percent));
                     }
                 });
             } else {
@@ -138,66 +152,91 @@ public class PlayerUI {
             }
         });
 
-        aboutItem.addActionListener(e -> new About().run());
-
         loadRecentFiles();
     }
 
-    private void chooseFile(JPanel centerPanel, JFXPanel videoPanel, JSlider seekBar, JSlider volumeSlider, JLabel timeLabel) {
+    private void chooseFile() {
         JFileChooser chooser = new JFileChooser();
-        chooser.setDialogTitle("Select Media File");
-        chooser.setFileFilter(new javax.swing.filechooser.FileNameExtensionFilter("Media Files", "mp4", "mp3"));
+        chooser.setDialogTitle("Select a media file");
+        chooser.setFileFilter(new javax.swing.filechooser.FileNameExtensionFilter("Media files", "mp4", "mp3"));
         if (chooser.showOpenDialog(frame) == JFileChooser.APPROVE_OPTION) {
             File file = chooser.getSelectedFile();
-            String ext = getFileExtension(file);
-
-            if (ext.equalsIgnoreCase("mp4")) {
-                openVideo(file, centerPanel, videoPanel, seekBar, volumeSlider, timeLabel);
-            } else if (ext.equalsIgnoreCase("mp3")) {
-                openAudio(file, centerPanel);
+            String path = file.getAbsolutePath().toLowerCase();
+            if (path.endsWith(".mp4")) {
+                openMediaFile(file);
+            } else if (path.endsWith(".mp3")) {
+                openAudio(file);
             }
         }
     }
 
-    private void openVideo(File file, JPanel centerPanel, JFXPanel videoPanel, JSlider seekBar, JSlider volumeSlider, JLabel timeLabel) {
+    private void openMediaFile(File file) {
+        if (file == null) return;
+
         Platform.runLater(() -> {
-            if (mediaPlayer != null) {
-                mediaPlayer.stop();
-                mediaPlayer.dispose();
+            try {
+                Media media = new Media(file.toURI().toString());
+
+                if (mediaPlayer != null) {
+                    mediaPlayer.stop();
+                    mediaPlayer.dispose();
+                }
+
+                mediaPlayer = new MediaPlayer(media);
+
+                // MediaView
+                if (mediaView == null) {
+                    mediaView = new MediaView(mediaPlayer);
+                } else {
+                    mediaView.setMediaPlayer(mediaPlayer);
+                }
+
+                StackPane root = new StackPane();
+                root.getChildren().add(mediaView);
+
+                mediaView.setPreserveRatio(true);
+                mediaView.fitWidthProperty().bind(root.widthProperty());
+                mediaView.fitHeightProperty().bind(root.heightProperty());
+
+                Scene scene = new Scene(root, 800, 600, javafx.scene.paint.Color.BLACK);
+                jfxPanel.setScene(scene);
+
+                fileLabel.setVisible(false);
+                mediaPlayer.play();
+
+                addRecentFile(file.getAbsolutePath());
+
+            } catch (Exception e) {
+                JOptionPane.showMessageDialog(frame,
+                        "Could not open file:\n" + file.getName() + "\n" + e.getMessage());
             }
-
-            Media media = new Media(file.toURI().toString());
-            mediaPlayer = new MediaPlayer(media);
-            mediaView.setMediaPlayer(mediaPlayer);
-
-            StackPane root = new StackPane();
-            root.getChildren().add(mediaView);
-
-            Scene scene = new Scene(root, 800, 600, Color.BLACK);
-            videoPanel.setScene(scene);
-
-            ((CardLayout) centerPanel.getLayout()).show(centerPanel, "VIDEO");
-
-            mediaPlayer.play();
         });
     }
 
-    private void openAudio(File file, JPanel centerPanel) {
+    private void openAudio(File file) {
+        if (file == null) return;
+
         Platform.runLater(() -> {
-            if (mediaPlayer != null) {
-                mediaPlayer.stop();
-                mediaPlayer.dispose();
+            try {
+                Media media = new Media(file.toURI().toString());
+
+                if (mediaPlayer != null) {
+                    mediaPlayer.stop();
+                    mediaPlayer.dispose();
+                }
+
+                mediaPlayer = new MediaPlayer(media);
+                mediaPlayer.play();
+
+                fileLabel.setText(file.getName());
+                fileLabel.setVisible(true);
+
+                addRecentFile(file.getAbsolutePath());
+
+            } catch (Exception e) {
+                JOptionPane.showMessageDialog(frame,
+                        "Could not open audio:\n" + file.getName() + "\n" + e.getMessage());
             }
-
-            Media media = new Media(file.toURI().toString());
-            mediaPlayer = new MediaPlayer(media);
-
-            visualizerPanel.attachMediaPlayer(mediaPlayer);
-            albumArtLabel.setIcon(AlbumArtLoader.loadAlbumArt(file));
-
-            ((CardLayout) centerPanel.getLayout()).show(centerPanel, "VISUALIZER");
-
-            mediaPlayer.play();
         });
     }
 
@@ -221,18 +260,13 @@ public class PlayerUI {
         }
     }
 
-    private String getFileExtension(File file) {
-        String name = file.getName();
-        int dot = name.lastIndexOf('.');
-        return (dot == -1) ? "" : name.substring(dot + 1);
-    }
-
-    // --- Recent Files ---
     private void loadRecentFiles() {
         recentFiles.clear();
-        for (int i = 0; i < MAX_RECENT_FILES; i++) {
+        for (int i = 0; i <= MAX_RECENT_FILES; i++) {
             String path = prefs.get("recentFile" + i, null);
-            if (path != null) recentFiles.add(path);
+            if (path != null) {
+                recentFiles.add(path);
+            }
         }
         refreshRecentFilesMenu();
     }
@@ -240,14 +274,15 @@ public class PlayerUI {
     private void addRecentFile(String path) {
         recentFiles.removeIf(obj -> obj instanceof String && obj.equals(path));
         recentFiles.add(0, path);
-
-        while (recentFiles.size() > MAX_RECENT_FILES) recentFiles.remove(recentFiles.size() - 1);
-
+        while (recentFiles.size() > MAX_RECENT_FILES) {
+            recentFiles.remove(recentFiles.size() - 1);
+        }
         for (int i = 0; i < recentFiles.size(); i++) {
             Object obj = recentFiles.get(i);
-            if (obj instanceof String s) prefs.put("recentFile" + i, s);
+            if (obj instanceof String s) {
+                prefs.put("recentFile" + i, s);
+            }
         }
-
         refreshRecentFilesMenu();
     }
 
@@ -257,12 +292,11 @@ public class PlayerUI {
         for (Object obj : recentFiles) {
             if (obj instanceof String path) {
                 JMenuItem item = new JMenuItem(path);
-                item.addActionListener(e -> chooseFileFromPath(path));
+                item.addActionListener(e -> openMediaFile(new File(path)));
                 recentFilesMenu.add(item);
                 hasFiles = true;
             }
         }
-
         if (!hasFiles) {
             JMenuItem empty = new JMenuItem("No recent files :(");
             empty.setEnabled(false);
@@ -270,15 +304,11 @@ public class PlayerUI {
         }
     }
 
-    private void chooseFileFromPath(String path) {
-        File f = new File(path);
-        if (f.exists()) {
-            String ext = getFileExtension(f);
-            if (ext.equalsIgnoreCase("mp4")) {
-                // For simplicity, assuming videoPanel etc. are accessible here
-            } else if (ext.equalsIgnoreCase("mp3")) {
-                // Same for audio
-            }
-        }
+    private String formatTime(Duration duration) {
+        if (duration == null || duration.isUnknown()) return "00:00";
+        int totalSeconds = (int) Math.floor(duration.toSeconds());
+        int minutes = totalSeconds / 60;
+        int seconds = totalSeconds % 60;
+        return new DecimalFormat("00").format(minutes) + ":" + new DecimalFormat("00").format(seconds);
     }
 }
