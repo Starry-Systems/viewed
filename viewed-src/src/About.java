@@ -10,6 +10,7 @@ public class About {
                 "<html><div style='text-align: center;'>"
                         + "<h2>Viewed Media Player</h2>"
                         + "<p>By Starry Systems</p>"
+                        + "<p>Build: 1A01</p>"
                         + "<p>Application Programming: Ben House</p>"
                         + "<p>Web Programming: Lakshin Hemachandran</p>"
                         + "<p>Made with ❤️, Java and IntelliJ IDEA</p>"

@@ -33,7 +33,7 @@ public class PlayerUI {
     private JLabel fileLabel;
 
     public void createAndShowGUI() {
-        frame = new JFrame("Viewed - Alpha");
+        frame = new JFrame("Viewed - V0.1");
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setSize(900, 700);
         frame.setLayout(new BorderLayout());
@@ -158,7 +158,7 @@ public class PlayerUI {
     private void chooseFile() {
         JFileChooser chooser = new JFileChooser();
         chooser.setDialogTitle("Select a media file");
-        chooser.setFileFilter(new javax.swing.filechooser.FileNameExtensionFilter("Media files", "mp4", "mp3"));
+        chooser.setFileFilter(new javax.swing.filechooser.FileNameExtensionFilter("MPEG Files", "mp4", "mp3"));
         if (chooser.showOpenDialog(frame) == JFileChooser.APPROVE_OPTION) {
             File file = chooser.getSelectedFile();
             String path = file.getAbsolutePath().toLowerCase();
