@@ -14,6 +14,8 @@ import java.io.File;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.prefs.Preferences;
+import javafx.util.Duration;
+
 
 public class PlayerUI {
 
