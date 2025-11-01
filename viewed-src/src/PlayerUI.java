@@ -111,9 +111,19 @@ public class PlayerUI {
         }
     }
 
+    private void logMediaInfo(Media media) {
+        System.out.println("=== JavaFX Backend Dump (GStreamer) ===");
+        System.out.println("Source: " + media.getSource());
+        media.getMetadata().forEach((key, value) ->
+                System.out.println(key + ": " + value)
+        );
+        System.out.println("=========================");
+    }
+
+
 
     public void createAndShowGUI() {
-        System.out.println("PlayerUI.class has started");
+        System.out.println("PlayerUI.class has startedH");
         JFrame frame = new JFrame("Viewed - Alpha");
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setSize(900, 700);
