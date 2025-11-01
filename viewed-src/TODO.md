@@ -4,3 +4,4 @@
 - [] find a use for moduleB
 - [] add a theming system with a .prop file or something
 - [] compile a testing jar
+- [] add logging to all files
