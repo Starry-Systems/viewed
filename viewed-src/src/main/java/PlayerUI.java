@@ -175,7 +175,7 @@ public class PlayerUI {
         }
 
         String path = file.getAbsolutePath().toLowerCase();
-        if (path.endsWith(".mp4")) {
+        if (path.endsWith(".mp4") || path.endsWith(".m4v")) {
             openMediaFile(file);
         } else if (path.endsWith(".mp3") || path.endsWith(".wav") || path.endsWith(".aiff") || path.endsWith(".aac")) {
             openAudio(file);
