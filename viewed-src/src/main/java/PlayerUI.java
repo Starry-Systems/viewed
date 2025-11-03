@@ -57,9 +57,9 @@ public class PlayerUI {
         JMenuItem reloadItem = new JMenuItem("Reload Player");
         playbackMenu.add(reloadItem);
 
-        JMenu toolsMenu = new JMenu("Misc.");
+        JMenu toolsMenu = new JMenu("Help");
         JMenuItem aboutItem = new JMenuItem("About");
-        JMenuItem nothingItem = new JMenuItem("Nothing.");
+        JMenuItem nothingItem = new JMenuItem("Help");
         toolsMenu.add(aboutItem);
         toolsMenu.add(nothingItem);
 
@@ -108,7 +108,8 @@ public class PlayerUI {
 
         // --- Action handlers ---
         openItem.addActionListener(e -> chooseFile());
-        exitItem.addActionListener(e -> System.exit(0));
+        exitItem.addActionListener(e ->
+                System.exit(0));
 
         fullscreenItem.addActionListener(e -> toggleFullscreen());
 
@@ -121,7 +122,7 @@ public class PlayerUI {
         });
 
         aboutItem.addActionListener(e -> new About().run());
-        nothingItem.addActionListener(e -> JOptionPane.showMessageDialog(frame, "TODO"));
+        nothingItem.addActionListener(e -> JOptionPane.showMessageDialog(frame, "There currently isn't any help available. \n There will be by V1."));
 
         playBtn.addActionListener(e -> Platform.runLater(() -> {
             if (mediaPlayer != null) mediaPlayer.play();
@@ -159,7 +160,7 @@ public class PlayerUI {
         JFileChooser chooser = new JFileChooser();
         chooser.setDialogTitle("Select a media file");
         chooser.setFileFilter(new javax.swing.filechooser.FileNameExtensionFilter(
-                "Audio/Video Files", "mp4", "mp3", "wav"));
+                "Audio/Video Files", "mp4", "mp3", "wav", "aac", "aiff"));
 
         int result = chooser.showOpenDialog(frame);
         if (result != JFileChooser.APPROVE_OPTION) {
@@ -176,7 +177,7 @@ public class PlayerUI {
         String path = file.getAbsolutePath().toLowerCase();
         if (path.endsWith(".mp4")) {
             openMediaFile(file);
-        } else if (path.endsWith(".mp3") || path.endsWith(".wav")) {
+        } else if (path.endsWith(".mp3") || path.endsWith(".wav") || path.endsWith(".aiff") || path.endsWith(".aac")) {
             openAudio(file);
         } else {
             JOptionPane.showMessageDialog(frame, "Unsupported file type!");
