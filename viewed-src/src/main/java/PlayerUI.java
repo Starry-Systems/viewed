@@ -1,5 +1,3 @@
-package main.java;
-
 import javafx.application.Platform;
 import javafx.embed.swing.JFXPanel;
 import javafx.scene.Scene;
@@ -35,7 +33,7 @@ public class PlayerUI {
     private JLabel fileLabel;
 
     public void createAndShowGUI() {
-        frame = new JFrame("Viewed - V0.2 - Oh my Opus! ");
+        frame = new JFrame("Viewed - V0.2 (Ready for liftoff)");
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setSize(900, 700);
         frame.setLayout(new BorderLayout());
@@ -44,7 +42,7 @@ public class PlayerUI {
         JMenuBar menuBar = new JMenuBar();
 
         JMenu fileMenu = new JMenu("File");
-        JMenuItem openItem = new JMenuItem("Open MP4/MP3...");
+        JMenuItem openItem = new JMenuItem("Open Audio/Video file...");
         JMenuItem exitItem = new JMenuItem("Exit");
         fileMenu.add(openItem);
         fileMenu.addSeparator();
@@ -161,7 +159,7 @@ public class PlayerUI {
         JFileChooser chooser = new JFileChooser();
         chooser.setDialogTitle("Select a media file");
         chooser.setFileFilter(new javax.swing.filechooser.FileNameExtensionFilter(
-                "MPEG Files", "mp4", "mp3"));
+                "Audio/Video Files", "mp4", "mp3", "wav"));
 
         int result = chooser.showOpenDialog(frame);
         if (result != JFileChooser.APPROVE_OPTION) {
@@ -178,7 +176,7 @@ public class PlayerUI {
         String path = file.getAbsolutePath().toLowerCase();
         if (path.endsWith(".mp4")) {
             openMediaFile(file);
-        } else if (path.endsWith(".mp3") || path.endsWith(".ogg") || path.endsWith(".opus")) {
+        } else if (path.endsWith(".mp3") || path.endsWith(".wav")) {
             openAudio(file);
         } else {
             JOptionPane.showMessageDialog(frame, "Unsupported file type!");
