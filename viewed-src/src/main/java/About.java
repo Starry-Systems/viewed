@@ -14,7 +14,7 @@ public class About {
                         + "<p>Application Programming: Ben House</p>"
                         + "<p>Web Programming: Lakshin Hemachandran</p>"
                         + "<p>Made with ❤️, Java and IntelliJ IDEA</p>"
-                        + "<p><em>Viewed is published under the GNU GPL V3</em></p>"
+                        + "<p><em>Viewed is published under the GNU Affero General Public License v3.0</em></p>"
                         + "</div></html>",
                 SwingConstants.CENTER
         );
